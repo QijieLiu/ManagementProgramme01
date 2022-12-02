@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8;"/>
+    <title>
+        登录
+    </title>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        @import url("https://unpkg.com/element-plus/lib/theme-chalk/index.css");
+
+        #app {
+            width: 300px;
+        }
+
+        .error_input input {
+            border-color: red;
+        }
+
+        #login_btn {
+            width: 220px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <el-form :label-position="labelPosition" label-width="80px" :model="form">
+        <el-form-item label="用户名">
+            <el-input v-model="form.username" placeholder="请输入用户名" v-bind:class="{error_input:form.username_temp}"
+                      @input="check_username(form.username)"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+            <el-input placeholder="请输入密码" v-model="form.password" v-bind:class="{error_input:form.password_temp}"
+                      show-password @input="check_password(form.password)"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" id="login_btn" @click="login">登录</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+</body>
+<script>
+    const {ElMessage} = ElementPlus;
+
+    var Main = {
+        data() {
+            return {
+                form: {
+                    username: "",
+                    password: "",
+                    username_temp: false,
+                    password_temp: false
+                },
+                labelPosition: "right"
+            };
+        },
+        methods: {
+            check_username(val) {
+                if (val.length < 2 || val.length > 20) {
+                    this.form.username_temp = true;
+                } else {
+                    this.form.username_temp = false;
+                }
+            },
+            check_password(val) {
+                if (val.length < 6 || val.length > 20) {
+                    this.form.password_temp = true;
+                } else {
+                    this.form.password_temp = false;
+                }
+            },
+            login() {
+                let u = this.form.username;
+                let p = this.form.password;
+
+                if (u.length == 0 || p.length == 0) {
+                    ElMessage.error("用户名或密码不能为空！");
+                } else if (!/^[a-zA-Z0-9]{2,20}$/.test(u)) {
+                    ElMessage.error("用户名为2-20位！");
+                } else if (
+                    !/^(?![\d]+$)(?![a-zA-Z]+$)(?![^\da-zA-Z]+$)([^\u4e00-\u9fa5\s]){6,20}$/.test(
+                        p
+                    )
+                ) {
+                    console.log("username:" + u + " password:" + p);
+                    ElMessage.error(
+                        "密码必须包含大小写字母、数字和特殊字符，两种或两种以上！"
+                    );
+                } else {
+                    axios.get('/cgi-bin/test.cgi', {
+                        params: {
+                            username: u,
+                            password: p
+                        }
+                    })
+                        .then(function (response) {
+                            console.log(response);
+                            console.log(response.data);
+                            if (response.data == true) {
+                                ElMessage.success({
+                                    message: "登录成功",
+                                    type: "success"
+                                });
+                            } else {
+                                ElMessage.error("用户名或密码错误！");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                }
+            }
+        },
+        watch: {}
+    };
+
+    const app = Vue.createApp(Main);
+    app.use(ElementPlus);
+    app.mount("#app");
+
+</script>
+
+</html>
